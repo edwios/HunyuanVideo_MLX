@@ -6,10 +6,12 @@ import numpy as np
 from loguru import logger
 import imageio
 from pathlib import Path
+from PIL import Image
 
 from hyvideo.utils.memory_utils import print_memory_usage
 from hyvideo.inference import HunyuanVideo
 from hyvideo.utils.quantization import quantize_model_weights
+from hyvideo.utils.file_utils import save_video_grid
 
 def load_mlx_config(config_path: str = "configs/mlx_config.json"):
     """Load MLX configuration with defaults"""
@@ -185,14 +187,30 @@ def main():
         
         # Save video
         logger.info("Saving video...")
-        video = outputs.videos[0]  # First video in batch
+        print(f'Shape and types of videos: {outputs.videos.shape}, {outputs.videos.dtype}, {type(outputs.videos)}')
+        video = outputs.videos[0]  # First video (C, T, W, H) in batch
+        print(f'Shape and types of video: {video.shape}, {video.dtype}, {type(video)}')
+        video = video.permute(1, 2, 3, 0) # Transpose to (T, H, W, C)
+        print(f'Shape and types of permuted video: {video.shape}, {video.dtype}, {type(video)}')
+        for f in video:
+            print(f'Shape and types of video: {f.shape}, {f.dtype}, {type(f)}')
         save_path = os.path.join(args.save_path, f"{args.seed}.mp4")
+        video = ((video + 1) / 2 * 255).clamp(0, 255).to(torch.uint8)
+        frames = [Image.fromarray(frame.cpu().numpy()) for frame in video]
         
+        # Save video grid
+        save_video_grid(frames, save_path, fps=8)
+        """
         # Convert to uint8 range [0, 255]
-        video = ((video + 1) * 127.5).astype(np.uint8)
-        
+        video = ((video + 1) * 127.5).clamp(0, 255).to(torch.uint8).to('cpu')
+        video = video.permute(1, 2, 3, 0) # Transpose to (T, H, W, C)
+        print(f'Shape and types of video: {video.shape}, {video.dtype}, {type(video)}')
+        video_np = video.numpy()
+        for f in video_np:
+            print(f'Shape and types of video: {f.shape}, {f.dtype}, {type(f)}')
         # Save frames as video
-        imageio.mimsave(save_path, [frame for frame in video], fps=8)
+        imageio.mimsave(save_path, video_np, fps=8)
+        """
         logger.info(f"Video saved to {save_path}")
         
     except Exception as e:

@@ -101,7 +101,7 @@ def from_mlx(array):
     if array is None:
         return None
     # Convert to float32 and return numpy array
-    return array.astype(mx.float32).numpy()
+    return np.array(array.astype(mx.float32), dtype=np.float32)
 
 @dataclass
 class HunyuanVideoPipelineOutput:

@@ -18,7 +18,7 @@ from hyvideo.utils.data_utils import align_to
 from hyvideo.modules.posemb_layers import get_nd_rotary_pos_embed
 from hyvideo.diffusion.schedulers import FlowMatchDiscreteScheduler
 from hyvideo.diffusion.pipelines.pipeline_hunyuan_video import (
-    HunyuanVideoPipeline,
+    HunyuanVideoPipeline, Output,
     to_mlx,
     from_mlx,
 )
@@ -401,12 +401,12 @@ class HunyuanVideo(Inference):
             logger.info(f"Generation successful, time: {gen_time:.2f}s")
             
             # Return in pipeline output format
-            return HunyuanVideoPipeline.Output(
+            #return samples
+            return Output(
                 videos=samples.videos,
                 seeds=seeds,
                 prompts=prompt * num_videos_per_prompt
             )
-            
         except Exception as e:
             logger.error(f"Generation failed: {str(e)}")
             raise

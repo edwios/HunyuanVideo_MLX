@@ -13,7 +13,7 @@ def to_mlx(tensor):
 
 class MLXVAE:
     """MLX-optimized VAE wrapper for HunyuanVideo."""
-    
+
     def __init__(self, vae):
         """Initialize MLX VAE wrapper.
         
@@ -36,7 +36,7 @@ class MLXVAE:
         import torch
         if not isinstance(x, torch.Tensor):
             # Convert MLX array to numpy array first
-            x = torch.from_numpy(x.astype(mx.float32).tolist())
+            x = torch.from_numpy(np.array(x.astype(mx.float32), np.float32)).to(torch.float16)
             if torch.backends.mps.is_available():
                 x = x.to("mps")
         
@@ -71,7 +71,7 @@ class MLXVAE:
         import torch
         if not isinstance(z, torch.Tensor):
             # Convert MLX array to numpy array first
-            z = torch.from_numpy(z.astype(mx.float32).tolist())
+            z = torch.from_numpy(np.array(z.astype(mx.float32), np.float32)).to(torch.float16)
             if torch.backends.mps.is_available():
                 z = z.to("mps")
         
